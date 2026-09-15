@@ -1,0 +1,152 @@
+class FoodItem:
+    def __init__(self, name, price):
+        self.name = name
+        self.price = price
+
+class Order:
+    def __init__(self):
+        self.itens = []
+
+    def add_item(self, item):
+        self.itens.append(item)
+
+    def subtotal(self):
+        return sum(item.price for item in self.itens)
+
+    def calcular_total(self, quantidade_pessoas=1):
+        valor_base = self.subtotal()
+        
+        # Desconto de 5% se for dividido para 4 ou mais pessoas
+        desconto = 0
+        if quantidade_pessoas >= 4:
+            desconto = valor_base * 0.05
+        
+        subtotal_com_desconto = valor_base - desconto
+        
+        # Taxa de serviço de 10%
+        taxa_servico = subtotal_com_desconto * 0.10
+        total_final = subtotal_com_desconto + taxa_servico
+        valor_por_pessoa = total_final / quantidade_pessoas if quantidade_pessoas > 0 else total_final
+        
+        return {
+            "subtotal": valor_base,
+            "desconto": desconto,
+            "taxa_servico": taxa_servico,
+            "total_final": total_final,
+            "valor_por_pessoa": valor_por_pessoa
+        }
+
+class FoodOrderingApp:
+
+    def __init__(self):
+        self.menu_items = {
+            "açaí": FoodItem("Açaí", 20),
+            "suco": FoodItem("Suco", 40),
+            "bisteca": FoodItem("Bisteca", 60),
+            "açaí_papa": FoodItem("Açaí_papa", 20),
+            "maminha": FoodItem("Maminha", 70),
+            "curimatã": FoodItem("Curimatã", 120),
+            "alcatra": FoodItem("Alcatra", 80),
+            "charque da cheirosa": FoodItem("CHARQUE DA CHEIROSA", 5),
+            "picanha": FoodItem("PICANHA", 90),
+        }
+        self.current_order = Order()
+
+    def display_menu(self):
+        print("\n--- CARDÁPIO ---")
+        for food_item in self.menu_items.values():
+            print(f"{food_item.name}: R$ {food_item.price:.2f}")
+
+    def display_order(self):
+        print("\n--- PEDIDO ATUAL ---")
+        if not self.current_order.itens:
+            print("Seu carrinho está vazio.")
+            return
+
+        for item in self.current_order.itens:
+            print(f"{item.name}: R$ {item.price:.2f}")
+
+        resumo = self.current_order.calcular_total()
+        print(f"\nSubtotal: R$ {resumo['subtotal']:.2f}")
+        print(f"Taxa de serviço (10%): R$ {resumo['taxa_servico']:.2f}")
+        print(f"Total estimado (1 pessoa): R$ {resumo['total_final']:.2f}")
+
+    def checkout(self):
+        if not self.current_order.itens:
+            print("\nSeu carrinho está vazio! Adicione itens antes de finalizar.")
+            return False
+
+        print("\n--- FINALIZAÇÃO DO PEDIDO ---")
+        
+        try:
+            pessoas = int(input("Em quantas pessoas a conta será dividida? "))
+            if pessoas <= 0:
+                pessoas = 1
+        except ValueError:
+            print("Número inválido. Considerando 1 pessoa.")
+            pessoas = 1
+
+        resumo = self.current_order.calcular_total(quantidade_pessoas=pessoas)
+
+        print("\n" + "="*30)
+        print("RESUMO DO FECHAMENTO DA CONTA")
+        print("="*30)
+        print(f"Subtotal dos itens:      R$ {resumo['subtotal']:.2f}")
+        
+        if resumo['desconto'] > 0:
+            print(f"Desconto (5% para 4+ pss): -R$ {resumo['desconto']:.2f}")
+            
+        print(f"Taxa de serviço (10%):   R$ {resumo['taxa_servico']:.2f}")
+        print(f"TOTAL FINAL DA CONTA:    R$ {resumo['total_final']:.2f}")
+        
+        if pessoas > 1:
+            print(f"\nDividido para {pessoas} pessoas: R$ {resumo['valor_por_pessoa']:.2f} por pessoa")
+        print("="*30)
+        
+        return True
+
+    # Método renomeado de start/main para menu
+    def menu(self):
+        print("Bem-vindo ao Rancho da PICANHA!")
+
+        while True:
+            print("\n1. Ver Cardápio")
+            print("2. Adicionar item ao pedido")
+            print("3. Ver pedido e valor parcial")
+            print("4. Finalizar e fechar conta (dividir pedido)")
+            print("5. Cancelar")
+
+            choice = input("\nDigite sua escolha: ")
+
+            if choice == "1":
+                self.display_menu()
+
+            elif choice == "2":
+                item_name = input("Digite o nome do prato para adicionar: ").strip().lower()
+                if item_name in self.menu_items:
+                    self.current_order.add_item(self.menu_items[item_name])
+                    print(f"'{self.menu_items[item_name].name}' adicionado com sucesso!")
+                else:
+                    print("Item inválido. Por favor, tente novamente.")
+
+            elif choice == "3":
+                self.display_order()
+
+            elif choice == "4":
+                if self.checkout():
+                    print("Pedido realizado com sucesso! Obrigado pela preferência.")
+                    break
+
+            elif choice == "5":
+                print("Atendimento encerrado. Saravá!")
+                break
+
+            else:
+                print("Opção inválida. Por favor, tente novamente.")
+
+def menu():
+    app = FoodOrderingApp()
+    app.menu()
+
+if __name__ == "__main__":
+    menu()
